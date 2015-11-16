@@ -8,7 +8,7 @@ use std::cell::RefCell;
 
 pub struct TimedStack<T> {
     queue: Mutex<RefCell<Vec<T>>>,
-    resource: Condvar
+    resource: Condvar,
 }
 
 unsafe impl<T: Send> Send for TimedStack<T> {}
