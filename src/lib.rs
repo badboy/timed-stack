@@ -34,7 +34,7 @@ impl<T> TimedStack<T> {
         l
     }
 
-    pub fn empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
