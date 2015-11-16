@@ -85,7 +85,7 @@ fn below_timeout() {
         assert!(nanos > 100*1000*1000);
     });
 
-    sleep(Duration::from_millis(100));
+    sleep(Duration::from_millis(200));
     arc_stack.push(1);
 
     t1.join().unwrap();
