@@ -1,3 +1,8 @@
+#![cfg_attr(feature = "nightly", allow(unstable_features))]
+#![cfg_attr(feature = "nightly", feature(plugin))]
+#![cfg_attr(feature = "nightly", plugin(clippy))]
+#![cfg_attr(feature = "nightly", allow(let_and_return))]
+
 use std::sync::{Condvar, Mutex};
 use std::cell::RefCell;
 
