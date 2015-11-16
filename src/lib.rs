@@ -21,6 +21,13 @@ impl<T> TimedStack<T> {
         }
     }
 
+    pub fn with_capacity(capacity: usize) -> TimedStack<T> {
+        TimedStack {
+            queue: Mutex::new(RefCell::new(Vec::with_capacity(capacity))),
+            resource: Condvar::new(),
+        }
+    }
+
     pub fn push(&self, obj: T) -> bool {
         let queue = self.queue.lock().unwrap();
         queue.borrow_mut().push(obj);
@@ -79,4 +86,13 @@ fn pop() {
     assert_eq!(Some(1), t.pop(1));
     assert_eq!(0, t.len());
     assert_eq!(None, t.pop(1));
+}
+
+#[test]
+fn with_cap() {
+    let t = TimedStack::with_capacity(10);
+
+    assert_eq!(0, t.len());
+    t.push(1);
+    assert_eq!(1, t.len());
 }
