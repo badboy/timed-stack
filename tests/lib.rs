@@ -65,3 +65,28 @@ fn duration() {
     assert_eq!(0, d.as_secs());
     assert!(d.subsec_nanos() > 50*1000*1000);
 }
+
+#[cfg(feature = "nightly")]
+#[test]
+fn below_timeout() {
+    let stack = TimedStack::new();
+    let arc_stack = Arc::new(stack);
+
+    let stack2 = arc_stack.clone();
+    let t1 = thread::spawn(move||{
+        let d = Duration::span(||{
+            assert_eq!(Some(1), stack2.pop(500));
+        });
+
+
+        assert_eq!(0, d.as_secs());
+        let nanos = d.subsec_nanos();
+        assert!(nanos < 500*1000*1000);
+        assert!(nanos > 100*1000*1000);
+    });
+
+    sleep(Duration::from_millis(100));
+    arc_stack.push(1);
+
+    t1.join().unwrap();
+}
