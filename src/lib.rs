@@ -1,7 +1,6 @@
-#![cfg_attr(feature = "nightly", allow(unstable_features))]
-#![cfg_attr(feature = "nightly", feature(plugin))]
-#![cfg_attr(feature = "nightly", plugin(clippy))]
-#![cfg_attr(feature = "nightly", allow(let_and_return))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", allow(let_and_return))]
 
 use std::time::Duration;
 use std::collections::VecDeque;
