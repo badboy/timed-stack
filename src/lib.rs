@@ -3,11 +3,12 @@
 #![cfg_attr(feature = "nightly", plugin(clippy))]
 #![cfg_attr(feature = "nightly", allow(let_and_return))]
 
+use std::collections::VecDeque;
 use std::sync::{Condvar, Mutex};
 use std::cell::RefCell;
 
 pub struct TimedStack<T> {
-    queue: Mutex<RefCell<Vec<T>>>,
+    queue: Mutex<RefCell<VecDeque<T>>>,
     resource: Condvar,
 }
 
@@ -16,21 +17,21 @@ unsafe impl<T: Send> Send for TimedStack<T> {}
 impl<T> TimedStack<T> {
     pub fn new() -> TimedStack<T> {
         TimedStack {
-            queue: Mutex::new(RefCell::new(Vec::new())),
+            queue: Mutex::new(RefCell::new(VecDeque::new())),
             resource: Condvar::new(),
         }
     }
 
     pub fn with_capacity(capacity: usize) -> TimedStack<T> {
         TimedStack {
-            queue: Mutex::new(RefCell::new(Vec::with_capacity(capacity))),
+            queue: Mutex::new(RefCell::new(VecDeque::with_capacity(capacity))),
             resource: Condvar::new(),
         }
     }
 
     pub fn push(&self, obj: T) -> bool {
         let queue = self.queue.lock().unwrap();
-        queue.borrow_mut().push(obj);
+        queue.borrow_mut().push_back(obj);
         self.resource.notify_all();
         true
     }
@@ -52,7 +53,7 @@ impl<T> TimedStack<T> {
             {
                 let mut vec = queue.borrow_mut();
                 if vec.len() > 0 {
-                    let elem = vec.pop();
+                    let elem = vec.pop_front();
                     return elem;
                 }
             }
