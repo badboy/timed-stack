@@ -3,6 +3,7 @@
 #![cfg_attr(feature = "nightly", plugin(clippy))]
 #![cfg_attr(feature = "nightly", allow(let_and_return))]
 
+use std::time::Duration;
 use std::collections::VecDeque;
 use std::sync::{Condvar, Mutex};
 use std::cell::RefCell;
@@ -47,6 +48,7 @@ impl<T> TimedStack<T> {
     }
 
     pub fn pop(&self, timeout_ms: u32) -> Option<T> {
+        let timeout_ms = Duration::from_millis(timeout_ms as u64);
         let mut queue = self.queue.lock().unwrap();
 
         loop {
@@ -58,8 +60,8 @@ impl<T> TimedStack<T> {
                 }
             }
 
-            let (q2, t) = self.resource.wait_timeout_ms(queue, timeout_ms).unwrap();
-            if !t {
+            let (q2, t) = self.resource.wait_timeout(queue, timeout_ms).unwrap();
+            if t.timed_out() {
                 break;
             }
 
