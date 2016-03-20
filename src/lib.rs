@@ -38,8 +38,8 @@ impl<T> TimedStack<T> {
 
     pub fn len(&self) -> usize {
         let queue = self.queue.lock().unwrap();
-        let l = queue.borrow().len();
-        l
+        let length = queue.borrow().len(); // borrowck is not satisfied if we return this
+        length
     }
 
     pub fn is_empty(&self) -> bool {
