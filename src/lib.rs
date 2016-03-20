@@ -47,8 +47,8 @@ impl<T> TimedStack<T> {
         self.len() == 0
     }
 
-    pub fn pop(&self, timeout_ms: u32) -> Option<T> {
-        let timeout_ms = Duration::from_millis(timeout_ms as u64);
+    pub fn pop(&self, timeout_ms: u64) -> Option<T> {
+        let timeout_ms = Duration::from_millis(timeout_ms);
         let mut queue = self.queue.lock().unwrap();
 
         loop {
