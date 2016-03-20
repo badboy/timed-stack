@@ -6,6 +6,7 @@ use std::time::Duration;
 use std::collections::VecDeque;
 use std::sync::{Condvar, Mutex};
 use std::cell::RefCell;
+use std::default::Default;
 
 pub struct TimedStack<T> {
     queue: Mutex<RefCell<VecDeque<T>>>,
@@ -13,6 +14,12 @@ pub struct TimedStack<T> {
 }
 
 unsafe impl<T: Send> Send for TimedStack<T> {}
+
+impl<T> Default for TimedStack<T> {
+    fn default() -> TimedStack<T> {
+        TimedStack::new()
+    }
+}
 
 impl<T> TimedStack<T> {
     pub fn new() -> TimedStack<T> {
