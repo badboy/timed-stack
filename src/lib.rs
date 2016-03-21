@@ -1,64 +1,73 @@
-#![cfg_attr(feature = "nightly", allow(unstable_features))]
-#![cfg_attr(feature = "nightly", feature(plugin))]
-#![cfg_attr(feature = "nightly", plugin(clippy))]
-#![cfg_attr(feature = "nightly", allow(let_and_return))]
+#![cfg_attr(feature = "clippy", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
+#![cfg_attr(feature = "clippy", allow(let_and_return))]
 
+use std::time::Duration;
+use std::collections::VecDeque;
 use std::sync::{Condvar, Mutex};
 use std::cell::RefCell;
+use std::default::Default;
 
 pub struct TimedStack<T> {
-    queue: Mutex<RefCell<Vec<T>>>,
+    queue: Mutex<RefCell<VecDeque<T>>>,
     resource: Condvar,
 }
 
 unsafe impl<T: Send> Send for TimedStack<T> {}
 
+impl<T> Default for TimedStack<T> {
+    fn default() -> TimedStack<T> {
+        TimedStack::new()
+    }
+}
+
 impl<T> TimedStack<T> {
     pub fn new() -> TimedStack<T> {
         TimedStack {
-            queue: Mutex::new(RefCell::new(Vec::new())),
+            queue: Mutex::new(RefCell::new(VecDeque::new())),
             resource: Condvar::new(),
         }
     }
 
     pub fn with_capacity(capacity: usize) -> TimedStack<T> {
         TimedStack {
-            queue: Mutex::new(RefCell::new(Vec::with_capacity(capacity))),
+            queue: Mutex::new(RefCell::new(VecDeque::with_capacity(capacity))),
             resource: Condvar::new(),
         }
     }
 
     pub fn push(&self, obj: T) -> bool {
         let queue = self.queue.lock().unwrap();
-        queue.borrow_mut().push(obj);
+        queue.borrow_mut().push_back(obj);
         self.resource.notify_all();
         true
     }
 
     pub fn len(&self) -> usize {
         let queue = self.queue.lock().unwrap();
-        let l = queue.borrow().len();
-        l
+        let length = queue.borrow().len(); // borrowck is not satisfied if we return this
+        length
     }
 
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    pub fn pop(&self, timeout_ms: u32) -> Option<T> {
+    pub fn pop(&self, timeout_ms: u64) -> Option<T> {
+        let timeout_ms = Duration::from_millis(timeout_ms);
         let mut queue = self.queue.lock().unwrap();
 
         loop {
             {
                 let mut vec = queue.borrow_mut();
                 if vec.len() > 0 {
-                    let elem = vec.pop();
+                    let elem = vec.pop_front();
                     return elem;
                 }
             }
 
-            let (q2, t) = self.resource.wait_timeout_ms(queue, timeout_ms).unwrap();
-            if !t {
+            let (q2, t) = self.resource.wait_timeout(queue, timeout_ms).unwrap();
+            if t.timed_out() {
                 break;
             }
 

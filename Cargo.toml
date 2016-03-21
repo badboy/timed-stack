@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Jan-Erik Rediger <janerik@fnordig.de>"]
 
 [dependencies]
-clippy = {version = "0.0.23", optional = true}
+clippy = {version = "*", optional = true}
 
 [features]
-nightly = ["clippy"]
+default = []
